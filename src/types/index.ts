@@ -1,3 +1,5 @@
+export type BlockType = 'subject' | 'neighbor';
+
 export interface ManualBlock {
   id: string;
   latitude: number;
@@ -6,6 +8,7 @@ export interface ManualBlock {
   depth: number;
   height: number;
   rotation: number;
+  blockType: BlockType;
 }
 
 export type Season = 'summer_solstice' | 'winter_solstice' | 'equinox';

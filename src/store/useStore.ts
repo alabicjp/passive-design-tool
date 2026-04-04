@@ -23,6 +23,7 @@ interface StoreState {
   addBlock: (block: ManualBlock) => void;
   updateBlock: (id: string, updates: Partial<ManualBlock>) => void;
   removeBlock: (id: string) => void;
+  clearAllBlocks: () => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -51,6 +52,7 @@ export const useStore = create<StoreState>()(
         })),
       removeBlock: (id) =>
         set((s) => ({ manualBlocks: s.manualBlocks.filter((b) => b.id !== id) })),
+      clearAllBlocks: () => set({ manualBlocks: [] }),
     }),
     {
       name: 'passive-design-storage',

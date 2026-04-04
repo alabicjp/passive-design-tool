@@ -8,7 +8,7 @@ import { DeckGL as DeckGLBase } from '@deck.gl/react';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DeckGL = DeckGLBase as any;
 import { TerrainLayer } from '@deck.gl/geo-layers';
-import { LightingEffect, _SunLight as SunLight, AmbientLight } from '@deck.gl/core';
+import { LightingEffect, _SunLight as SunLight, AmbientLight, WebMercatorViewport } from '@deck.gl/core';
 import { useStore } from '@/store/useStore';
 import { SEASON_CONFIG } from '@/constants/seasons';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -17,20 +17,36 @@ import { useManualBlockLayers } from './ManualBlocks';
 const INITIAL_VIEW_STATE = {
   latitude: 35.6812,
   longitude: 139.7671,
-  zoom: 15,
+  zoom: 18,
   pitch: 45,
   bearing: 0,
   maxPitch: 85,
   minZoom: 5,
-  maxZoom: 18,
+  maxZoom: 20,
+};
+
+type MapStyle = 'osm' | 'photo';
+
+const MAP_STYLES: Record<MapStyle, { tiles: string[]; maxzoom: number; attribution: string }> = {
+  osm: {
+    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+    maxzoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  },
+  photo: {
+    tiles: ['https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg'],
+    maxzoom: 18,
+    attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院</a>',
+  },
 };
 
 interface DeckGLMapProps {
   isAddMode: boolean;
   onMapClick?: (lat: number, lng: number) => void;
+  mapStyle: MapStyle;
 }
 
-export default function DeckGLMap({ isAddMode, onMapClick }: DeckGLMapProps) {
+export default function DeckGLMap({ isAddMode, onMapClick, mapStyle }: DeckGLMapProps) {
   const { latitude, longitude, season, timeHour, performanceMode } = useStore();
   const mapRef = useRef<MapLibreMap | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -88,29 +104,34 @@ export default function DeckGLMap({ isAddMode, onMapClick }: DeckGLMapProps) {
   const blockLayers = useManualBlockLayers();
   const allLayers = useMemo(() => [...terrainLayers, ...blockLayers], [terrainLayers, blockLayers]);
 
-  // MapLibre初期化（マウント時のみ）
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // MapLibre初期化（マウント時 + mapStyle変更時）
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current) return;
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+    }
+    const tileConfig = MAP_STYLES[mapStyle];
     const map = new MapLibreMap({
       container: containerRef.current,
       style: {
         version: 8,
         sources: {
-          'gsi-pale': {
+          'base-tiles': {
             type: 'raster',
-            tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],
+            tiles: tileConfig.tiles,
             tileSize: 256,
-            attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">国土地理院</a>',
+            attribution: tileConfig.attribution,
+            maxzoom: tileConfig.maxzoom,
           },
         },
         layers: [
           {
-            id: 'gsi-pale-layer',
+            id: 'base-layer',
             type: 'raster',
-            source: 'gsi-pale',
+            source: 'base-tiles',
             minzoom: 0,
-            maxzoom: 18,
+            maxzoom: 20,
           },
         ],
       },
@@ -125,7 +146,8 @@ export default function DeckGLMap({ isAddMode, onMapClick }: DeckGLMapProps) {
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapStyle]);
 
   useEffect(() => {
     setViewState((prev) => ({ ...prev, latitude, longitude }));
@@ -150,12 +172,18 @@ export default function DeckGLMap({ isAddMode, onMapClick }: DeckGLMapProps) {
   const handleClick = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (info: any) => {
-      if (info.coordinate && onMapClick) {
+      if (!onMapClick) return;
+      if (info.coordinate) {
         const [lng, lat] = info.coordinate;
+        onMapClick(lat, lng);
+      } else if (info.x !== undefined && info.y !== undefined) {
+        // Fallback: unproject screen coordinates when no pickable layer is hit
+        const viewport = new WebMercatorViewport(viewState);
+        const [lng, lat] = viewport.unproject([info.x, info.y]);
         onMapClick(lat, lng);
       }
     },
-    [onMapClick]
+    [onMapClick, viewState]
   );
 
   return (
