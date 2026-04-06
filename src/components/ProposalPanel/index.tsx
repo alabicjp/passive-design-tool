@@ -4,6 +4,8 @@ import dynamic from 'next/dynamic';
 import EavesProposal from './EavesProposal';
 import WindowProposal from './WindowProposal';
 import VentilationProposal from './VentilationProposal';
+import CoverageCheck from './CoverageCheck';
+import ThermalPerformance from './ThermalPerformance';
 import ReportButton from './ReportButton';
 import { useStore } from '@/store/useStore';
 
@@ -24,10 +26,12 @@ export default function ProposalPanel({ isMobile }: { isMobile?: boolean }) {
       <h2 className="text-lg font-bold text-gray-800 print:hidden">パッシブデザイン提案</h2>
       <p className="text-[11px] text-gray-400 print:hidden">左の設定に基づいて、パッシブデザインの提案を自動計算しています。</p>
 
+      <CoverageCheck />
       <SunlightChart />
       <EavesProposal />
       <WindowProposal />
       <VentilationProposal />
+      <ThermalPerformance />
       <ReportButton />
 
       {/* 印刷用フッター */}
