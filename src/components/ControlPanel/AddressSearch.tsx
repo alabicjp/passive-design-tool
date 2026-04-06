@@ -10,8 +10,30 @@ interface GeoResult {
   precise: boolean;
 }
 
-// GSI geocoder API（より正確な住所検索）
-async function searchGSIGeo(query: string): Promise<GeoResult | null> {
+const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+// Google Geocoding API（最優先 — 地番にも対応）
+async function searchGoogle(query: string): Promise<GeoResult | null> {
+  if (!GOOGLE_API_KEY) return null;
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&region=jp&language=ja&key=${GOOGLE_API_KEY}`
+    );
+    const data = await res.json();
+    if (data.status === 'OK' && data.results.length > 0) {
+      const result = data.results[0];
+      const { lat, lng } = result.geometry.location;
+      const title = result.formatted_address?.replace(/^日本、〒[\d\-]+\s*/, '') || query;
+      // ROOFTOP or RANGE_INTERPOLATED は精度高い
+      const precise = ['ROOFTOP', 'RANGE_INTERPOLATED'].includes(result.geometry.location_type);
+      return { lat, lng, title, precise };
+    }
+  } catch { /* Google検索失敗を無視 */ }
+  return null;
+}
+
+// GSI geocoder API（フォールバック）
+async function searchGSI(query: string): Promise<GeoResult | null> {
   try {
     const res = await fetch(
       `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(query)}`
@@ -27,79 +49,30 @@ async function searchGSIGeo(query: string): Promise<GeoResult | null> {
   return null;
 }
 
-// Nominatim（OSM）検索
-async function searchNominatim(query: string): Promise<GeoResult | null> {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=jp&format=json&limit=1`,
-      { headers: { 'Accept-Language': 'ja' } }
-    );
-    const data = await res.json();
-    if (data.length > 0) {
-      const precise = ['house', 'building', 'residential'].includes(data[0].type);
-      return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
-        title: data[0].display_name?.split(',')[0] || query,
-        precise,
-      };
-    }
-  } catch { /* Nominatim検索失敗を無視 */ }
-  return null;
-}
-
-// 住所を正規化（県名が省略されている場合に補完候補を生成）
+// 住所を正規化（県名が省略されている場合に補完）
 function normalizeQuery(query: string): string[] {
   const trimmed = query.trim();
   const queries = [trimmed];
 
-  // 県名が含まれていない場合、主要な県名を付加して検索候補を作る
   const hasKen = /^(北海道|東京都|大阪府|京都府|.{2,3}県)/.test(trimmed);
-  if (!hasKen) {
-    // 市名から始まっている場合、三重県をデフォルトで追加（工務店の主要エリア）
-    if (/^[^\d]+市/.test(trimmed)) {
-      queries.unshift('三重県' + trimmed);
-    }
+  if (!hasKen && /^[^\d]+[市町村]/.test(trimmed)) {
+    queries.unshift('三重県' + trimmed);
   }
 
   return queries;
-}
-
-// 番地部分を除去して再検索用
-function removeHouseNumber(query: string): string | null {
-  const stripped = query.replace(/[\d\-－ー０-９]+$/, '').trim();
-  return stripped !== query ? stripped : null;
 }
 
 async function geocode(query: string): Promise<GeoResult | null> {
   const queries = normalizeQuery(query);
 
   for (const q of queries) {
-    // GSIとNominatimを並行検索
-    const [gsi, nom] = await Promise.all([
-      searchGSIGeo(q),
-      searchNominatim(q),
-    ]);
+    // Google APIを優先、なければGSIにフォールバック
+    const google = await searchGoogle(q);
+    if (google?.precise) return google;
 
-    // 精度が高い方を優先
-    if (gsi?.precise) return gsi;
-    if (nom?.precise) return nom;
+    const gsi = await searchGSI(q);
+    if (google) return google;
     if (gsi) return gsi;
-    if (nom) return nom;
-  }
-
-  // 番地を除いて再検索
-  const simpler = removeHouseNumber(query);
-  if (simpler) {
-    const simplerQueries = normalizeQuery(simpler);
-    for (const q of simplerQueries) {
-      const [gsi2, nom2] = await Promise.all([
-        searchGSIGeo(q),
-        searchNominatim(q),
-      ]);
-      if (gsi2) return { ...gsi2, precise: false };
-      if (nom2) return { ...nom2, precise: false };
-    }
   }
 
   return null;
@@ -138,14 +111,14 @@ export default function AddressSearch() {
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-gray-700">住所検索</label>
-      <p className="text-[11px] text-gray-400">建設予定地の住所を入力してください。地図をクリックしても位置を変更できます。</p>
+      <p className="text-[11px] text-gray-400">住所や地番を入力してください。地図をクリックしても位置を変更できます。</p>
       <div className="flex gap-2">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="例: 伊賀市上野丸之内 または 三重県名張市平尾"
+          placeholder="例: 伊賀市上野丸之内116 / 名張市平尾3207-10"
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         />
         <button
