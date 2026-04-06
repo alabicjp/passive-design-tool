@@ -59,13 +59,25 @@ const WINDOW_SPECS = [
   { label: '単板ガラス（アルミ枠）', u: 6.51 },
 ];
 
-// 断熱等性能等級の判定
-function getInsulationGrade(ua: number): { grade: number; label: string; color: string } {
-  // 6地域基準で判定（簡易版）
-  if (ua <= 0.26) return { grade: 7, label: '等級7（HEAT20 G3）', color: 'text-purple-700 bg-purple-100' };
-  if (ua <= 0.46) return { grade: 6, label: '等級6（HEAT20 G2）', color: 'text-blue-700 bg-blue-100' };
-  if (ua <= 0.60) return { grade: 5, label: '等級5（ZEH基準）', color: 'text-green-700 bg-green-100' };
-  if (ua <= 0.87) return { grade: 4, label: '等級4（省エネ基準）', color: 'text-yellow-700 bg-yellow-100' };
+// 断熱等性能等級の判定（地域区分対応）
+// 等級基準値は告示に基づく地域別UA値（W/m2K）
+const GRADE_BY_REGION: Record<number, { g7: number; g6: number; g5: number; g4: number }> = {
+  1: { g7: 0.20, g6: 0.28, g5: 0.40, g4: 0.46 },
+  2: { g7: 0.20, g6: 0.28, g5: 0.40, g4: 0.46 },
+  3: { g7: 0.20, g6: 0.28, g5: 0.50, g4: 0.56 },
+  4: { g7: 0.23, g6: 0.34, g5: 0.60, g4: 0.75 },
+  5: { g7: 0.26, g6: 0.46, g5: 0.60, g4: 0.87 },
+  6: { g7: 0.26, g6: 0.46, g5: 0.60, g4: 0.87 },
+  7: { g7: 0.26, g6: 0.46, g5: 0.60, g4: 0.87 },
+  8: { g7: 0.26, g6: 0.46, g5: 0.60, g4: 0.87 },
+};
+
+function getInsulationGrade(ua: number, region: number): { grade: number; label: string; color: string } {
+  const g = GRADE_BY_REGION[region] || GRADE_BY_REGION[6];
+  if (ua <= g.g7) return { grade: 7, label: '等級7（HEAT20 G3相当）', color: 'text-purple-700 bg-purple-100' };
+  if (ua <= g.g6) return { grade: 6, label: '等級6（HEAT20 G2相当）', color: 'text-blue-700 bg-blue-100' };
+  if (ua <= g.g5) return { grade: 5, label: '等級5（ZEH基準）', color: 'text-green-700 bg-green-100' };
+  if (ua <= g.g4) return { grade: 4, label: '等級4（省エネ基準）', color: 'text-yellow-700 bg-yellow-100' };
   return { grade: 3, label: '等級3以下', color: 'text-red-700 bg-red-100' };
 }
 
@@ -123,7 +135,7 @@ export default function ThermalPerformance() {
     );
   }
 
-  const grade = getInsulationGrade(result.ua);
+  const grade = getInsulationGrade(result.ua, region);
   const meetsStandard = result.ua <= standard.ua;
   const meetsZEH = result.ua <= standard.zeh;
 
