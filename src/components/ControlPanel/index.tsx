@@ -8,9 +8,10 @@ import PerformanceToggle from './PerformanceToggle';
 import ManualBlockPanel from './ManualBlockPanel';
 
 function StepHeader({ number, title, description }: { number: number; title: string; description: string }) {
+  const colors = ['bg-blue-600', 'bg-green-600', 'bg-amber-500'];
   return (
     <div className="flex items-start gap-3">
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${colors[number - 1] || 'bg-blue-600'} text-xs font-bold text-white`}>
         {number}
       </span>
       <div>
@@ -29,7 +30,7 @@ export default function ControlPanel({ isMobile }: { isMobile?: boolean }) {
         <StepHeader
           number={1}
           title="敷地を探す"
-          description="建設予定地の住所を入力して、地図上で敷地を特定します"
+          description="住所や地番を入力して、地図上で敷地を特定します"
         />
         <AddressSearch />
       </div>
@@ -40,11 +41,11 @@ export default function ControlPanel({ isMobile }: { isMobile?: boolean }) {
       <div className="space-y-3">
         <StepHeader
           number={2}
-          title="建物を設定する"
-          description="建物正面の向きを設定し、本物件と周囲の建物を地図に配置します"
+          title="敷地と建物を配置する"
+          description="地図上のボタンで敷地→本物件→隣地建物の順に配置します"
         />
-        <AzimuthSlider />
         <ManualBlockPanel />
+        <AzimuthSlider />
       </div>
 
       <hr className="border-gray-100" />

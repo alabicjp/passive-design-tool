@@ -14,6 +14,15 @@ import { useStore } from '@/store/useStore';
 
 const SunlightChart = dynamic(() => import('./SunlightChart'), { ssr: false });
 
+function SectionDivider({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="pt-2 print:hidden">
+      <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wide">{title}</h3>
+      <p className="text-[10px] text-gray-400">{description}</p>
+    </div>
+  );
+}
+
 export default function ProposalPanel({ isMobile }: { isMobile?: boolean }) {
   const { address } = useStore();
   const today = new Date().toLocaleDateString('ja-JP');
@@ -26,17 +35,30 @@ export default function ProposalPanel({ isMobile }: { isMobile?: boolean }) {
         <p className="text-sm text-gray-600">{address || '住所未設定'} / {today}</p>
       </div>
 
-      <h2 className="text-lg font-bold text-gray-800 print:hidden">パッシブデザイン提案</h2>
-      <p className="text-[11px] text-gray-400 print:hidden">左の設定に基づいて、パッシブデザインの提案を自動計算しています。</p>
+      <div className="print:hidden">
+        <h2 className="text-lg font-bold text-gray-800">提案・分析結果</h2>
+        <p className="text-[11px] text-gray-400">左の設定と地図配置に基づいて、自動計算された結果です。</p>
+      </div>
 
+      {/* セクション1: 敷地 */}
+      <SectionDivider title="敷地・建物" description="面積と法規チェック" />
       <CoverageCheck />
+
+      {/* セクション2: 日照・パッシブ */}
+      <SectionDivider title="日照・パッシブ設計" description="太陽と風を活かす設計提案" />
       <SunlightChart />
       <EavesProposal />
       <WindowProposal />
       <VentilationProposal />
+
+      {/* セクション3: 断熱・省エネ */}
+      <SectionDivider title="断熱・省エネ" description="断熱性能と光熱費の比較" />
       <ThermalPerformance />
       <SolarHeatGain />
       <EnergyCostComparison />
+
+      {/* セクション4: 気象・レポート */}
+      <SectionDivider title="気象データ・レポート" description="実測データの確認とPDF出力" />
       <WeatherData />
       <ReportButton />
 

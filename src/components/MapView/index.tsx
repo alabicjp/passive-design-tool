@@ -117,10 +117,32 @@ export default function MapView() {
       </div>
       {/* 初期案内テキスト */}
       {!addMode && manualBlocks.length === 0 && !siteArea && (
-        <div className="absolute bottom-20 left-1/2 z-10 -translate-x-1/2 pointer-events-none">
-          <div className="rounded-xl bg-white/90 backdrop-blur-sm px-5 py-3 shadow-lg text-center">
-            <p className="text-sm font-medium text-gray-600">住所を検索したら、上のボタンで敷地と建物を配置してください</p>
-            <p className="text-[11px] text-gray-400 mt-1">「+ 敷地を配置」→「+ 本物件を配置」の順がおすすめです</p>
+        <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+          <div className="rounded-2xl bg-white/95 backdrop-blur-sm px-6 py-5 shadow-xl text-center max-w-sm">
+            <div className="flex justify-center mb-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-base font-bold text-gray-700 mb-2">まず住所を検索してください</p>
+            <p className="text-xs text-gray-500 mb-3">左パネルのStep 1で住所を入力すると、この地図が敷地の位置に移動します。</p>
+            <div className="text-left space-y-1.5 text-xs text-gray-500">
+              <p className="flex items-center gap-2">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-600 text-[9px] font-bold text-white">1</span>
+                <span>上の<span className="font-medium text-green-700">「+ 敷地を配置」</span>で敷地範囲を設定</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-500 text-[9px] font-bold text-white">2</span>
+                <span><span className="font-medium text-orange-600">「+ 本物件を配置」</span>で建物を配置</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-400 text-[9px] font-bold text-white">3</span>
+                <span>必要に応じて<span className="font-medium">隣地建物</span>も追加</span>
+              </p>
+            </div>
           </div>
         </div>
       )}
