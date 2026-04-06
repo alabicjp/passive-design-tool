@@ -73,7 +73,12 @@ export default function OnboardingModal({ onClose }: OnboardingModalProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+                  <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white ${
+                    step.number === 1 ? 'bg-blue-600' :
+                    step.number === 2 ? 'bg-green-600' :
+                    step.number === 3 ? 'bg-amber-500' :
+                    'bg-purple-600'
+                  }`}>
                     {step.number}
                   </span>
                   <h3 className="text-sm font-bold text-gray-700">{step.title}</h3>

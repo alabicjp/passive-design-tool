@@ -51,7 +51,7 @@ export default function ProposalPanel({ isMobile }: { isMobile?: boolean }) {
             </svg>
           </div>
           <p className="text-sm font-medium text-blue-700 mb-1">敷地と建物を配置してください</p>
-          <p className="text-xs text-blue-500">左パネルで住所検索 → 地図上で敷地・建物を配置すると、ここに分析結果が表示されます。</p>
+          <p className="text-xs text-blue-500">左パネルで住所検索 → 地図上で敷地・建物を配置すると、ここに分析結果が表示されます。ヘッダー右の「使い方」で手順を確認できます。</p>
         </div>
       )}
 

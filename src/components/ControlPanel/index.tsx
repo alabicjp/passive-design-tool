@@ -35,7 +35,7 @@ export default function ControlPanel({ isMobile }: { isMobile?: boolean }) {
         <AddressSearch />
       </div>
 
-      <hr className="border-gray-100" />
+      <hr className="border-gray-200" />
 
       {/* Step 2 */}
       <div className="space-y-3">
@@ -48,7 +48,7 @@ export default function ControlPanel({ isMobile }: { isMobile?: boolean }) {
         <AzimuthSlider />
       </div>
 
-      <hr className="border-gray-100" />
+      <hr className="border-gray-200" />
 
       {/* Step 3 */}
       <div className="space-y-3">
