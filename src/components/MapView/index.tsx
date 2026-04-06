@@ -18,23 +18,37 @@ const DeckGLMap = dynamic(() => import('./DeckGLMap'), {
   ),
 });
 
-type AddMode = false | BlockType;
+type AddMode = false | BlockType | 'site';
+
+// 住宅向けの現実的なデフォルト値
+const BLOCK_DEFAULTS: Record<BlockType, { width: number; depth: number; height: number }> = {
+  subject: { width: 9, depth: 7, height: 6 },    // 一般住宅: 9m×7m, 2階建て6m
+  neighbor: { width: 9, depth: 7, height: 6 },    // 隣家も同程度
+};
 
 export default function MapView() {
   const [addMode, setAddMode] = useState<AddMode>(false);
   const [mapStyle, setMapStyle] = useState<'osm' | 'photo'>('photo');
-  const { addBlock, setPosition, manualBlocks } = useStore();
+  const { addBlock, setPosition, manualBlocks, siteArea, setSiteArea } = useStore();
 
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
-      if (addMode) {
+      if (addMode === 'site') {
+        setSiteArea({
+          latitude: lat,
+          longitude: lng,
+          width: 15,   // 典型的な敷地: 15m×20m
+          depth: 20,
+          rotation: 0,
+        });
+        setAddMode(false);
+      } else if (addMode === 'subject' || addMode === 'neighbor') {
+        const defaults = BLOCK_DEFAULTS[addMode];
         addBlock({
           id: crypto.randomUUID(),
           latitude: lat,
           longitude: lng,
-          width: 8,
-          depth: 10,
-          height: 6,
+          ...defaults,
           rotation: 0,
           blockType: addMode,
         });
@@ -43,8 +57,10 @@ export default function MapView() {
         setPosition(lat, lng);
       }
     },
-    [addMode, addBlock, setPosition]
+    [addMode, addBlock, setPosition, setSiteArea]
   );
+
+  const modeLabel = addMode === 'site' ? '敷地' : addMode === 'subject' ? '本物件' : '隣地建物';
 
   return (
     <div className="map-view flex-1 min-w-0 relative h-full">
@@ -55,14 +71,25 @@ export default function MapView() {
       <div className="absolute top-3 left-3 z-10 flex gap-2 flex-wrap">
         {!addMode ? (
           <>
+            {!siteArea && (
+              <button
+                onClick={() => setAddMode('site')}
+                aria-label="敷地範囲を地図上に配置する"
+                className="rounded-lg px-3 py-2 text-sm font-medium shadow-md transition-colors bg-green-600 text-white hover:bg-green-700"
+              >
+                + 敷地を配置
+              </button>
+            )}
             <button
               onClick={() => setAddMode('subject')}
+              aria-label="本物件を地図上に配置する"
               className="rounded-lg px-3 py-2 text-sm font-medium shadow-md transition-colors bg-orange-500 text-white hover:bg-orange-600"
             >
               + 本物件を配置
             </button>
             <button
               onClick={() => setAddMode('neighbor')}
+              aria-label="隣地建物を地図上に配置する"
               className="rounded-lg px-3 py-2 text-sm font-medium shadow-md transition-colors bg-white text-gray-700 hover:bg-gray-100"
             >
               + 隣地建物を配置
@@ -77,21 +104,23 @@ export default function MapView() {
               配置モードを解除
             </button>
             <span className={`flex items-center rounded-lg px-3 py-2 text-xs shadow-md ${
-              addMode === 'subject'
+              addMode === 'site'
+                ? 'bg-green-100 text-green-800'
+                : addMode === 'subject'
                 ? 'bg-orange-100 text-orange-800'
                 : 'bg-slate-100 text-slate-800'
             }`}>
-              地図をクリック → {addMode === 'subject' ? '本物件' : '隣地建物'}を配置
+              地図をクリック → {modeLabel}を配置
             </span>
           </>
         )}
       </div>
       {/* 初期案内テキスト */}
-      {!addMode && manualBlocks.length === 0 && (
+      {!addMode && manualBlocks.length === 0 && !siteArea && (
         <div className="absolute bottom-20 left-1/2 z-10 -translate-x-1/2 pointer-events-none">
           <div className="rounded-xl bg-white/90 backdrop-blur-sm px-5 py-3 shadow-lg text-center">
-            <p className="text-sm font-medium text-gray-600">住所を検索したら、上のボタンで建物を配置してください</p>
-            <p className="text-[11px] text-gray-400 mt-1">「+ 本物件を配置」を押してから地図をクリックすると建物が配置されます</p>
+            <p className="text-sm font-medium text-gray-600">住所を検索したら、上のボタンで敷地と建物を配置してください</p>
+            <p className="text-[11px] text-gray-400 mt-1">「+ 敷地を配置」→「+ 本物件を配置」の順がおすすめです</p>
           </div>
         </div>
       )}

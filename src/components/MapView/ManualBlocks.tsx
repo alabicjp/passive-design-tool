@@ -1,11 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { SolidPolygonLayer } from '@deck.gl/layers';
+import { SolidPolygonLayer, PathLayer } from '@deck.gl/layers';
 import SunCalc from 'suncalc';
 import { useStore } from '@/store/useStore';
 import { SEASON_CONFIG } from '@/constants/seasons';
-import { ManualBlock } from '@/types';
+import { ManualBlock, SiteArea } from '@/types';
 
 // メートルを経度・緯度の差分に変換（近似）
 function metersToLngLat(lat: number) {
@@ -36,6 +36,28 @@ function blockToPolygon(block: ManualBlock): [number, number][] {
   ]);
 }
 
+// 敷地の4頂点を計算
+function siteToPolygon(site: SiteArea): [number, number][] {
+  const { latPerMeter, lngPerMeter } = metersToLngLat(site.latitude);
+  const hw = (site.width / 2) * lngPerMeter;
+  const hd = (site.depth / 2) * latPerMeter;
+  const rot = (site.rotation * Math.PI) / 180;
+  const cos = Math.cos(rot);
+  const sin = Math.sin(rot);
+
+  const corners: [number, number][] = [
+    [-hw, -hd],
+    [hw, -hd],
+    [hw, hd],
+    [-hw, hd],
+  ];
+
+  return corners.map(([dx, dy]) => [
+    site.longitude + (dx * cos - dy * sin),
+    site.latitude + (dx * sin + dy * cos),
+  ]);
+}
+
 // 建物の影ポリゴンを計算
 function blockToShadowPolygon(
   block: ManualBlock,
@@ -52,8 +74,6 @@ function blockToShadowPolygon(
   const shadowLength = Math.min(rawLength, block.height * MAX_SHADOW_RATIO);
 
   // SunCalcのazimuth: 南=0, 西=正, 東=負（ラジアン）
-  // 太陽が東(az<0)→影は西(-lng), 太陽が西(az>0)→影は東(+lng)
-  // 太陽が南(az≈0)→影は北(+lat)
   const shadowDx = Math.sin(sunAzimuth) * shadowLength;
   const shadowDy = Math.cos(sunAzimuth) * shadowLength;
 
@@ -70,7 +90,6 @@ function blockToShadowPolygon(
   ] as [number, number]);
 
   // 建物底面4点 + 影先端4点で影の形状を作成
-  // 底面の各辺から影先端への台形を結合
   const n = topPolygon.length;
   const shadowPolygon: [number, number][] = [];
   for (let i = 0; i < n; i++) {
@@ -84,10 +103,39 @@ function blockToShadowPolygon(
 }
 
 export function useManualBlockLayers() {
-  const { manualBlocks, latitude, longitude, season, timeHour } = useStore();
+  const { manualBlocks, siteArea, latitude, longitude, season, timeHour } = useStore();
 
   return useMemo(() => {
-    if (manualBlocks.length === 0) return [];
+    const layers = [];
+
+    // 敷地レイヤー（薄い緑の枠線）
+    if (siteArea) {
+      const sitePolygon = siteToPolygon(siteArea);
+      // 閉じたパスにする
+      const sitePath = [...sitePolygon, sitePolygon[0]];
+
+      layers.push(
+        // 敷地の塗りつぶし（薄い半透明）
+        new SolidPolygonLayer({
+          id: 'site-area-fill',
+          data: [{ polygon: sitePolygon }],
+          getPolygon: (d: { polygon: [number, number][] }) => d.polygon,
+          getFillColor: [34, 197, 94, 40],
+          extruded: false,
+        }),
+        // 敷地の境界線
+        new PathLayer({
+          id: 'site-area-border',
+          data: [{ path: sitePath }],
+          getPath: (d: { path: [number, number][] }) => d.path,
+          getColor: [34, 197, 94, 200],
+          getWidth: 2,
+          widthUnits: 'pixels' as const,
+        }),
+      );
+    }
+
+    if (manualBlocks.length === 0 && !siteArea) return layers;
 
     // 太陽位置を計算
     const cfg = SEASON_CONFIG[season];
@@ -109,7 +157,7 @@ export function useManualBlockLayers() {
     const subjectBlocks = manualBlocks.filter((b) => b.blockType === 'subject');
     const neighborBlocks = manualBlocks.filter((b) => b.blockType !== 'subject');
 
-    const layers = [
+    layers.push(
       // 影レイヤー（地面レベル、半透明の暗い色）
       new SolidPolygonLayer({
         id: 'block-shadows',
@@ -139,8 +187,8 @@ export function useManualBlockLayers() {
         extruded: true,
         _shadow: true,
       }),
-    ];
+    );
 
     return layers;
-  }, [manualBlocks, latitude, longitude, season, timeHour]);
+  }, [manualBlocks, siteArea, latitude, longitude, season, timeHour]);
 }

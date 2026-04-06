@@ -21,9 +21,9 @@ function StepHeader({ number, title, description }: { number: number; title: str
   );
 }
 
-export default function ControlPanel() {
+export default function ControlPanel({ isMobile }: { isMobile?: boolean }) {
   return (
-    <aside className="control-panel w-[300px] shrink-0 overflow-y-auto border-r border-gray-200 bg-white p-4 space-y-5">
+    <aside className={`control-panel ${isMobile ? 'w-full' : 'w-[300px] shrink-0 border-r border-gray-200'} overflow-y-auto bg-white p-4 space-y-5`}>
       {/* Step 1 */}
       <div className="space-y-3">
         <StepHeader

@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback } from 'react';
-import SunCalc from 'suncalc';
 import { useStore } from '@/store/useStore';
 import { useEavesProposal } from '@/hooks/useEavesCalculation';
 import { getWindowRecommendations, directionLabel, getFaceDirections } from '@/utils/passiveDesign';
 import { getNearestWindData } from '@/constants/windData';
+import { calcSunlightHours } from '@/utils/sunlightHours';
 import { H_BASE } from '@/constants/defaults';
 
 function captureMapImage(): string | null {
@@ -31,22 +31,6 @@ function captureChartImage(): string | null {
   return null;
 }
 
-function calcSunlightHoursForReport(lat: number, lng: number, month: number, day: number, faceDir: number): number {
-  const year = new Date().getFullYear();
-  let hours = 0;
-  for (let h = 6; h <= 18; h += 0.5) {
-    const hr = Math.floor(h);
-    const min = (h - hr) * 60;
-    const date = new Date(year, month - 1, day, hr, min, 0);
-    const pos = SunCalc.getPosition(date, lat, lng);
-    if (pos.altitude <= 0) continue;
-    const sunAzNorth = (((pos.azimuth * 180) / Math.PI + 180) % 360 + 360) % 360;
-    const diff = Math.abs(((sunAzNorth - faceDir + 540) % 360) - 180);
-    if (diff <= 90) hours += 0.5;
-  }
-  return Math.round(hours * 10) / 10;
-}
-
 export default function ReportButton() {
   const store = useStore();
   const eaves = useEavesProposal(store.latitude, store.longitude, store.buildingAzimuth);
@@ -67,8 +51,8 @@ export default function ReportButton() {
       { label: '左側面', dir: faces.left },
       { label: '背面', dir: faces.back },
     ];
-    const summerHours = faceList.map(f => calcSunlightHoursForReport(latitude, longitude, 6, 21, f.dir));
-    const winterHours = faceList.map(f => calcSunlightHoursForReport(latitude, longitude, 12, 21, f.dir));
+    const summerHours = faceList.map(f => calcSunlightHours(latitude, longitude, 6, 21, f.dir));
+    const winterHours = faceList.map(f => calcSunlightHours(latitude, longitude, 12, 21, f.dir));
 
     const sizeColorMap: Record<string, string> = {
       '大開口': '#ea580c',

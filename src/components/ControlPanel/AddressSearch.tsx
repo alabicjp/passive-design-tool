@@ -10,8 +10,8 @@ interface GeoResult {
   precise: boolean;
 }
 
-// GSI検索（番地レベルの精度がある場合も）
-async function searchGSI(query: string): Promise<GeoResult | null> {
+// GSI geocoder API（より正確な住所検索）
+async function searchGSIGeo(query: string): Promise<GeoResult | null> {
   try {
     const res = await fetch(
       `https://msearch.gsi.go.jp/address-search/AddressSearch?q=${encodeURIComponent(query)}`
@@ -20,11 +20,10 @@ async function searchGSI(query: string): Promise<GeoResult | null> {
     if (data.length > 0) {
       const [lng, lat] = data[0].geometry.coordinates;
       const title = data[0].properties.title || query;
-      // 番地が含まれていれば精度高い
-      const precise = /\d+番地/.test(title);
+      const precise = /\d/.test(title);
       return { lat, lng, title, precise };
     }
-  } catch { /* ignore */ }
+  } catch { /* GSI検索失敗を無視 */ }
   return null;
 }
 
@@ -37,7 +36,7 @@ async function searchNominatim(query: string): Promise<GeoResult | null> {
     );
     const data = await res.json();
     if (data.length > 0) {
-      const precise = ['house', 'building'].includes(data[0].type);
+      const precise = ['house', 'building', 'residential'].includes(data[0].type);
       return {
         lat: parseFloat(data[0].lat),
         lng: parseFloat(data[0].lon),
@@ -45,8 +44,25 @@ async function searchNominatim(query: string): Promise<GeoResult | null> {
         precise,
       };
     }
-  } catch { /* ignore */ }
+  } catch { /* Nominatim検索失敗を無視 */ }
   return null;
+}
+
+// 住所を正規化（県名が省略されている場合に補完候補を生成）
+function normalizeQuery(query: string): string[] {
+  const trimmed = query.trim();
+  const queries = [trimmed];
+
+  // 県名が含まれていない場合、主要な県名を付加して検索候補を作る
+  const hasKen = /^(北海道|東京都|大阪府|京都府|.{2,3}県)/.test(trimmed);
+  if (!hasKen) {
+    // 市名から始まっている場合、三重県をデフォルトで追加（工務店の主要エリア）
+    if (/^[^\d]+市/.test(trimmed)) {
+      queries.unshift('三重県' + trimmed);
+    }
+  }
+
+  return queries;
 }
 
 // 番地部分を除去して再検索用
@@ -56,27 +72,34 @@ function removeHouseNumber(query: string): string | null {
 }
 
 async function geocode(query: string): Promise<GeoResult | null> {
-  // Step 1: GSIとNominatimを並行検索
-  const [gsi, nom] = await Promise.all([
-    searchGSI(query),
-    searchNominatim(query),
-  ]);
+  const queries = normalizeQuery(query);
 
-  // 精度が高い方を優先
-  if (gsi?.precise) return gsi;
-  if (nom?.precise) return nom;
-  if (gsi) return gsi;
-  if (nom) return nom;
+  for (const q of queries) {
+    // GSIとNominatimを並行検索
+    const [gsi, nom] = await Promise.all([
+      searchGSIGeo(q),
+      searchNominatim(q),
+    ]);
 
-  // Step 2: 番地を除いて再検索
+    // 精度が高い方を優先
+    if (gsi?.precise) return gsi;
+    if (nom?.precise) return nom;
+    if (gsi) return gsi;
+    if (nom) return nom;
+  }
+
+  // 番地を除いて再検索
   const simpler = removeHouseNumber(query);
   if (simpler) {
-    const [gsi2, nom2] = await Promise.all([
-      searchGSI(simpler),
-      searchNominatim(simpler),
-    ]);
-    if (gsi2) return { ...gsi2, precise: false };
-    if (nom2) return { ...nom2, precise: false };
+    const simplerQueries = normalizeQuery(simpler);
+    for (const q of simplerQueries) {
+      const [gsi2, nom2] = await Promise.all([
+        searchGSIGeo(q),
+        searchNominatim(q),
+      ]);
+      if (gsi2) return { ...gsi2, precise: false };
+      if (nom2) return { ...nom2, precise: false };
+    }
   }
 
   return null;
@@ -122,13 +145,13 @@ export default function AddressSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="例: 名張市平尾3207-10"
+          placeholder="例: 伊賀市上野丸之内 または 三重県名張市平尾"
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         />
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
           {loading ? '...' : '検索'}
         </button>

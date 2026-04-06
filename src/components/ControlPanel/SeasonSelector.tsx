@@ -11,8 +11,8 @@ export default function SeasonSelector() {
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">季節</label>
-      <div className="flex gap-2">
+      <label id="season-label" className="text-sm font-medium text-gray-700">季節</label>
+      <div className="flex gap-2" role="group" aria-labelledby="season-label">
         {seasons.map((s) => (
           <button
             key={s}

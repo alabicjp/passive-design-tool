@@ -9,12 +9,12 @@ import { useStore } from '@/store/useStore';
 
 const SunlightChart = dynamic(() => import('./SunlightChart'), { ssr: false });
 
-export default function ProposalPanel() {
+export default function ProposalPanel({ isMobile }: { isMobile?: boolean }) {
   const { address } = useStore();
   const today = new Date().toLocaleDateString('ja-JP');
 
   return (
-    <aside className="proposal-panel w-[350px] shrink-0 overflow-y-auto border-l border-gray-200 bg-slate-50 p-4 space-y-4">
+    <aside className={`proposal-panel ${isMobile ? 'w-full' : 'w-[350px] shrink-0 border-l border-gray-200'} overflow-y-auto bg-slate-50 p-4 space-y-4`}>
       {/* 印刷用ヘッダー */}
       <div className="hidden print:block mb-4">
         <h2 className="text-xl font-bold">パッシブデザイン提案レポート</h2>

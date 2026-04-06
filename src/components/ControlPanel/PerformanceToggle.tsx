@@ -7,8 +7,8 @@ export default function PerformanceToggle() {
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">パフォーマンスモード</label>
-      <div className="flex gap-2">
+      <label id="perf-label" className="text-sm font-medium text-gray-700">パフォーマンスモード</label>
+      <div className="flex gap-2" role="group" aria-labelledby="perf-label">
         <button
           onClick={() => setPerformanceMode('high')}
           className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${

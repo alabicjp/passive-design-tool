@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ManualBlock, Season, PerformanceMode } from '@/types';
+import { ManualBlock, SiteArea, Season, PerformanceMode } from '@/types';
 import { DEFAULT_LAT, DEFAULT_LNG } from '@/constants/defaults';
 
 interface StoreState {
@@ -12,6 +12,7 @@ interface StoreState {
   timeHour: number;
   performanceMode: PerformanceMode;
   manualBlocks: ManualBlock[];
+  siteArea: SiteArea | null;
   setAddress: (v: string) => void;
   setLatitude: (v: number) => void;
   setLongitude: (v: number) => void;
@@ -24,6 +25,8 @@ interface StoreState {
   updateBlock: (id: string, updates: Partial<ManualBlock>) => void;
   removeBlock: (id: string) => void;
   clearAllBlocks: () => void;
+  setSiteArea: (site: SiteArea | null) => void;
+  updateSiteArea: (updates: Partial<SiteArea>) => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -37,6 +40,7 @@ export const useStore = create<StoreState>()(
       timeHour: 12,
       performanceMode: 'high',
       manualBlocks: [],
+      siteArea: null,
       setAddress: (v) => set({ address: v }),
       setLatitude: (v) => set({ latitude: v }),
       setLongitude: (v) => set({ longitude: v }),
@@ -52,7 +56,12 @@ export const useStore = create<StoreState>()(
         })),
       removeBlock: (id) =>
         set((s) => ({ manualBlocks: s.manualBlocks.filter((b) => b.id !== id) })),
-      clearAllBlocks: () => set({ manualBlocks: [] }),
+      clearAllBlocks: () => set({ manualBlocks: [], siteArea: null }),
+      setSiteArea: (site) => set({ siteArea: site }),
+      updateSiteArea: (updates) =>
+        set((s) => ({
+          siteArea: s.siteArea ? { ...s.siteArea, ...updates } : null,
+        })),
     }),
     {
       name: 'passive-design-storage',
