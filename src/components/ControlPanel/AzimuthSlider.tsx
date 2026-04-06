@@ -37,7 +37,7 @@ export default function AzimuthSlider() {
         <span>西 90°</span>
         <span>北 180°</span>
       </div>
-      <p className="text-[11px] text-gray-400">建物正面が向く方角です。真南=0°、東寄りはマイナス、西寄りはプラスです。</p>
+      <p className="text-[11px] text-gray-400">玄関（道路側）が向く方角です。わからなければ0°（南向き）のままでOK。</p>
     </div>
   );
 }
