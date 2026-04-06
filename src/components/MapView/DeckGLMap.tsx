@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import { useCallback, useMemo, useRef, useEffect, useState, Component, ReactNode } from 'react';
 import { Map as MapLibreMap } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { DeckGL as DeckGLBase } from '@deck.gl/react';
@@ -187,18 +187,51 @@ export default function DeckGLMap({ isAddMode, onMapClick, mapStyle }: DeckGLMap
   );
 
   return (
-    <div className="relative w-full h-full" style={{ cursor: isAddMode ? 'crosshair' : undefined }}>
-      <div ref={containerRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
-      <DeckGL
-        viewState={viewState}
-        onViewStateChange={onViewStateChange}
-        controller={true}
-        layers={allLayers}
-        effects={[lightingEffect]}
-        glOptions={{ preserveDrawingBuffer: true }}
-        onClick={handleClick}
-        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-      />
-    </div>
+    <WebGLErrorBoundary>
+      <div className="relative w-full h-full" style={{ cursor: isAddMode ? 'crosshair' : undefined }}>
+        <div ref={containerRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
+        <DeckGL
+          viewState={viewState}
+          onViewStateChange={onViewStateChange}
+          controller={true}
+          layers={allLayers}
+          effects={[lightingEffect]}
+          glOptions={{ preserveDrawingBuffer: true }}
+          onClick={handleClick}
+          onError={() => {}}
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+        />
+      </div>
+    </WebGLErrorBoundary>
   );
+}
+
+// WebGLエラーをキャッチしてフォールバック表示
+class WebGLErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center w-full h-full bg-slate-100">
+          <div className="text-center p-6">
+            <p className="text-sm font-medium text-gray-600 mb-2">3D地図の表示に失敗しました</p>
+            <p className="text-xs text-gray-400 mb-3">WebGLに対応したブラウザ（Chrome/Edge推奨）をご使用ください。</p>
+            <button
+              onClick={() => this.setState({ hasError: false })}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-xs text-white hover:bg-blue-700"
+            >
+              再読み込み
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
