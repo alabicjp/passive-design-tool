@@ -54,6 +54,41 @@ export default function ReportButton() {
     const summerHours = faceList.map(f => calcSunlightHours(latitude, longitude, 6, 21, f.dir));
     const winterHours = faceList.map(f => calcSunlightHours(latitude, longitude, 12, 21, f.dir));
 
+    // 敷地・建蔽率セクションのHTML
+    let siteHtml = '';
+    const site = store.siteArea;
+    const subjects = store.manualBlocks.filter(b => b.blockType === 'subject');
+    if (site && subjects.length > 0) {
+      const siteM2 = site.width * site.depth;
+      const buildM2 = subjects.reduce((s, b) => s + b.width * b.depth, 0);
+      const totalFloor = subjects.reduce((s, b) => s + b.width * b.depth * Math.max(1, Math.round(b.height / 3)), 0);
+      const coverage = Math.round((buildM2 / siteM2) * 1000) / 10;
+      const far = Math.round((totalFloor / siteM2) * 1000) / 10;
+      const siteTsubo = Math.round(siteM2 / 3.30578 * 10) / 10;
+      const buildTsubo = Math.round(buildM2 / 3.30578 * 10) / 10;
+      const floorTsubo = Math.round(totalFloor / 3.30578 * 10) / 10;
+      const covClass = coverage <= 60 ? 'badge-green' : 'badge-red';
+      const farClass = far <= 200 ? 'badge-green' : 'badge-red';
+      siteHtml = `
+      <div class="section">
+        <div class="section-title">敷地・建物概要</div>
+        <div class="card">
+          <table class="sun-table">
+            <thead><tr><th>項目</th><th>面積</th><th>坪数</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:600">敷地面積</td><td>${siteM2}m2</td><td>${siteTsubo}坪</td></tr>
+              <tr><td style="font-weight:600">建築面積</td><td>${buildM2}m2</td><td>${buildTsubo}坪</td></tr>
+              <tr><td style="font-weight:600">延床面積</td><td>${totalFloor}m2</td><td>${floorTsubo}坪</td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:8px;">
+            <span class="badge ${covClass}">建蔽率: ${coverage}%</span>
+            <span class="badge ${farClass}">容積率: ${far}%</span>
+          </div>
+        </div>
+      </div>`;
+    }
+
     const sizeColorMap: Record<string, string> = {
       '大開口': '#ea580c',
       '中程度': '#ca8a04',
@@ -311,7 +346,51 @@ export default function ReportButton() {
 
   <div class="footer">
     <span>本レポートはシミュレーションに基づく参考資料です。実際の気象条件・周辺環境により結果は異なります。</span>
-    <span>2 / 2</span>
+    <span>2 / 3</span>
+  </div>
+</div>
+
+<!-- ページ3: 敷地・断熱性能・光熱費 -->
+<div class="page">
+  <div class="header">
+    <h1>パッシブデザイン提案レポート</h1>
+    <div class="header-right">
+      <div>${address || '未設定'}</div>
+      <div>${today}</div>
+    </div>
+  </div>
+
+  ${siteHtml}
+
+  <div class="section">
+    <div class="section-title">断熱性能・省エネ評価</div>
+    <div class="card" style="line-height: 1.8; font-size: 10px;">
+      <p style="color:#64748b; margin-bottom:8px;">断熱性能の詳細はツール上で壁・屋根・床・窓の仕様を選択して確認してください。</p>
+      <ul style="padding-left: 16px;">
+        <li><strong>UA値（外皮平均熱貫流率）:</strong> 壁・屋根・床・窓の断熱仕様から自動計算</li>
+        <li><strong>断熱等性能等級:</strong> 等級4（省エネ基準）〜 等級7（HEAT20 G3相当）の判定</li>
+        <li><strong>ZEH基準:</strong> UA値が地域別基準を満たすか判定</li>
+        <li><strong>年間光熱費:</strong> 断熱仕様別の冷暖房費概算と30年間の差額比較</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">総合まとめ</div>
+    <div class="card" style="line-height: 1.8; font-size: 10px;">
+      <ul style="padding-left: 16px;">
+        <li><strong>パッシブデザイン:</strong> 日照・通風を最大限活用した設計で、冷暖房エネルギーを削減</li>
+        <li><strong>軒の出:</strong> 夏季の日射遮蔽と冬季の日射取得を両立する軒の出を推奨</li>
+        <li><strong>窓配置:</strong> 方位に応じた開口サイズで日射と遮蔽のバランスを最適化</li>
+        <li><strong>断熱性能:</strong> 高断熱仕様（等級5以上）で年間光熱費を大幅に削減可能</li>
+        <li><strong>ZEH:</strong> 断熱性能の向上＋太陽光発電でZEH（ネット・ゼロ・エネルギー・ハウス）を実現</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>本レポートはシミュレーションに基づく参考資料です。詳細は設計担当者にご確認ください。</span>
+    <span>3 / 3</span>
   </div>
 </div>
 

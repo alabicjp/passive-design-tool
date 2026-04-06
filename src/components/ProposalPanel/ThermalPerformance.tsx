@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useStore } from '@/store/useStore';
+import { estimateRegion } from '@/utils/regionEstimation';
 
 // 省エネ基準の地域区分別UA値基準
 const REGION_STANDARDS: Record<number, { ua: number; zeh: number; label: string }> = {
@@ -14,18 +15,6 @@ const REGION_STANDARDS: Record<number, { ua: number; zeh: number; label: string 
   7: { ua: 0.87, zeh: 0.60, label: '7地域（鹿児島等）' },
   8: { ua: 0.87, zeh: 0.60, label: '8地域（沖縄等）' },
 };
-
-// 緯度から地域区分を簡易推定
-function estimateRegion(lat: number): number {
-  if (lat >= 43.5) return 1;
-  if (lat >= 42.0) return 2;
-  if (lat >= 39.5) return 3;
-  if (lat >= 37.0) return 4;
-  if (lat >= 35.5) return 5;
-  if (lat >= 33.0) return 6;
-  if (lat >= 27.0) return 7;
-  return 8;
-}
 
 // 壁の仕様
 const WALL_SPECS = [

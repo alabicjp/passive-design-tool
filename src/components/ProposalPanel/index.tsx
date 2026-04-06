@@ -6,6 +6,9 @@ import WindowProposal from './WindowProposal';
 import VentilationProposal from './VentilationProposal';
 import CoverageCheck from './CoverageCheck';
 import ThermalPerformance from './ThermalPerformance';
+import SolarHeatGain from './SolarHeatGain';
+import EnergyCostComparison from './EnergyCostComparison';
+import WeatherData from './WeatherData';
 import ReportButton from './ReportButton';
 import { useStore } from '@/store/useStore';
 
@@ -32,6 +35,9 @@ export default function ProposalPanel({ isMobile }: { isMobile?: boolean }) {
       <WindowProposal />
       <VentilationProposal />
       <ThermalPerformance />
+      <SolarHeatGain />
+      <EnergyCostComparison />
+      <WeatherData />
       <ReportButton />
 
       {/* 印刷用フッター */}
