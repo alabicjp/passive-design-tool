@@ -25,7 +25,14 @@ export function calcEaves(
   if (theta_eff <= 0 || !isFinite(theta_eff)) {
     return { D: 0, D_recommended: 0, isBehind: true, theta: Math.round(theta * (180 / Math.PI) * 10) / 10, theta_eff: 0 };
   }
-  const D = H_BASE / Math.tan(theta_eff);
+  const tanVal = Math.tan(theta_eff);
+  if (Math.abs(tanVal) < 0.01) {
+    return { D: 0, D_recommended: MIN_EAVES, isBehind: true, theta: Math.round(theta * (180 / Math.PI) * 10) / 10, theta_eff: Math.round(theta_eff * (180 / Math.PI) * 10) / 10 };
+  }
+  const D = H_BASE / tanVal;
+  if (!isFinite(D) || D < 0) {
+    return { D: 0, D_recommended: MIN_EAVES, isBehind: true, theta: Math.round(theta * (180 / Math.PI) * 10) / 10, theta_eff: Math.round(theta_eff * (180 / Math.PI) * 10) / 10 };
+  }
   return {
     D: Math.round(D * 100) / 100,
     D_recommended: Math.round(Math.max(D, MIN_EAVES) * 100) / 100,

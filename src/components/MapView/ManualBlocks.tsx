@@ -70,7 +70,8 @@ function blockToShadowPolygon(
 
   // 影の長さ（メートル）建物高さの10倍を上限とする（冬の朝夕に対応）
   const MAX_SHADOW_RATIO = 10;
-  const rawLength = block.height / Math.tan(sunAltitude);
+  const tanAlt = Math.tan(sunAltitude);
+  const rawLength = tanAlt > 0.001 ? block.height / tanAlt : block.height * MAX_SHADOW_RATIO;
   const shadowLength = Math.min(rawLength, block.height * MAX_SHADOW_RATIO);
 
   // SunCalcのazimuth: 南=0, 西=正, 東=負（ラジアン）

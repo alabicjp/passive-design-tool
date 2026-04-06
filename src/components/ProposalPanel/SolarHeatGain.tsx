@@ -31,7 +31,7 @@ const GLASS_TYPES = [
 ];
 
 export default function SolarHeatGain() {
-  const { buildingAzimuth, manualBlocks } = useStore();
+  const { buildingAzimuth, manualBlocks, latitude } = useStore();
   const subjectBlocks = manualBlocks.filter((b) => b.blockType === 'subject');
 
   const result = useMemo(() => {
@@ -89,7 +89,6 @@ export default function SolarHeatGain() {
   const STANDARD_AC: Record<number, number> = {
     1: 2.8, 2: 2.8, 3: 2.8, 4: 2.9, 5: 3.0, 6: 3.0, 7: 3.0, 8: 6.7,
   };
-  const { latitude } = useStore.getState();
   const region = estimateRegion(latitude);
   const standardAC = STANDARD_AC[region] || 3.0;
   const faces = getFaceDirections(buildingAzimuth);
