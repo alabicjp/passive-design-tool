@@ -16,17 +16,17 @@ export default function TimeSlider() {
       </label>
       <input
         type="range"
-        min={6}
-        max={18}
+        min={5}
+        max={19}
         step={0.5}
         value={timeHour}
         onChange={(e) => setTimeHour(Number(e.target.value))}
         className="w-full accent-blue-600"
       />
       <div className="flex justify-between text-xs text-gray-400">
-        <span>6:00</span>
+        <span>5:00</span>
         <span>12:00</span>
-        <span>18:00</span>
+        <span>19:00</span>
       </div>
       <p className="text-[11px] text-gray-400">時刻を動かすと、地図上の影がリアルタイムに変化します。</p>
     </div>

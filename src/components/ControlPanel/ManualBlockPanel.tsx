@@ -92,7 +92,7 @@ function BlockCard({ block, index, updateBlock, removeBlock }: {
           <input
             type="number"
             value={block.width}
-            onChange={(e) => updateBlock(block.id, { width: Number(e.target.value) })}
+            onChange={(e) => { const v = Number(e.target.value); if (v >= 1 && v <= 100) updateBlock(block.id, { width: v }); }}
             className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
             min={1}
             max={100}
@@ -103,7 +103,7 @@ function BlockCard({ block, index, updateBlock, removeBlock }: {
           <input
             type="number"
             value={block.depth}
-            onChange={(e) => updateBlock(block.id, { depth: Number(e.target.value) })}
+            onChange={(e) => { const v = Number(e.target.value); if (v >= 1 && v <= 100) updateBlock(block.id, { depth: v }); }}
             className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
             min={1}
             max={100}
@@ -114,12 +114,26 @@ function BlockCard({ block, index, updateBlock, removeBlock }: {
           <input
             type="number"
             value={block.height}
-            onChange={(e) => updateBlock(block.id, { height: Number(e.target.value) })}
+            onChange={(e) => { const v = Number(e.target.value); if (v >= 1 && v <= 100) updateBlock(block.id, { height: v }); }}
             className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
             min={1}
             max={100}
           />
         </div>
+      </div>
+
+      {/* 回転 */}
+      <div className="space-y-1">
+        <label className="text-xs text-gray-500">回転: {block.rotation}°</label>
+        <input
+          type="range"
+          min={0}
+          max={360}
+          step={5}
+          value={block.rotation}
+          onChange={(e) => updateBlock(block.id, { rotation: Number(e.target.value) })}
+          className="w-full accent-blue-600"
+        />
       </div>
 
       {/* 面積表示 */}

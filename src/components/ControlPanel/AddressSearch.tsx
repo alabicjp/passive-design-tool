@@ -66,11 +66,14 @@ async function geocode(query: string): Promise<GeoResult | null> {
   const queries = normalizeQuery(query);
 
   for (const q of queries) {
-    // Google APIを優先、なければGSIにフォールバック
-    const google = await searchGoogle(q);
-    if (google?.precise) return google;
+    // GoogleとGSIを並行検索し、精度が高い方を採用
+    const [google, gsi] = await Promise.all([
+      searchGoogle(q),
+      searchGSI(q),
+    ]);
 
-    const gsi = await searchGSI(q);
+    if (google?.precise) return google;
+    if (gsi?.precise) return gsi;
     if (google) return google;
     if (gsi) return gsi;
   }

@@ -68,14 +68,15 @@ function blockToShadowPolygon(
 
   const { latPerMeter, lngPerMeter } = metersToLngLat(block.latitude);
 
-  // 影の長さ（メートル）建物高さの3倍を上限とする
-  const MAX_SHADOW_RATIO = 3;
+  // 影の長さ（メートル）建物高さの10倍を上限とする（冬の朝夕に対応）
+  const MAX_SHADOW_RATIO = 10;
   const rawLength = block.height / Math.tan(sunAltitude);
   const shadowLength = Math.min(rawLength, block.height * MAX_SHADOW_RATIO);
 
   // SunCalcのazimuth: 南=0, 西=正, 東=負（ラジアン）
-  const shadowDx = Math.sin(sunAzimuth) * shadowLength;
-  const shadowDy = Math.cos(sunAzimuth) * shadowLength;
+  // 影は太陽の反対方向に伸びるため符号を反転
+  const shadowDx = -Math.sin(sunAzimuth) * shadowLength;
+  const shadowDy = -Math.cos(sunAzimuth) * shadowLength;
 
   // 影のオフセット（経緯度単位）
   const offsetLng = shadowDx * lngPerMeter;
