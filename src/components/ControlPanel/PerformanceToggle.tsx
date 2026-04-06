@@ -30,6 +30,7 @@ export default function PerformanceToggle() {
           軽量（タブレット）
         </button>
       </div>
+      <p className="text-[11px] text-gray-400">動作が重い場合は「軽量」に切り替えてください。</p>
     </div>
   );
 }

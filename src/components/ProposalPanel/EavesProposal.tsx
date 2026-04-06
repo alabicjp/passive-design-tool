@@ -11,6 +11,7 @@ export default function EavesProposal() {
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm space-y-3">
       <h3 className="text-sm font-semibold text-gray-700">軒の出提案</h3>
+      <p className="text-[11px] text-gray-400">夏の日差しを遮り、冬の日差しを取り込むために最適な軒の出幅を計算します。</p>
 
       {summerEaves.isBehind ? (
         <p className="text-sm text-gray-400">正面が北向きのため、軒による日射遮蔽は不要です</p>

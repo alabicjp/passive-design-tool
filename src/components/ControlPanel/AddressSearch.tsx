@@ -115,6 +115,7 @@ export default function AddressSearch() {
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-gray-700">住所検索</label>
+      <p className="text-[11px] text-gray-400">建設予定地の住所を入力してください。地図をクリックしても位置を変更できます。</p>
       <div className="flex gap-2">
         <input
           type="text"

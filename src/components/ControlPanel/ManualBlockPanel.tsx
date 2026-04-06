@@ -108,6 +108,8 @@ export default function ManualBlockPanel() {
         )}
       </div>
 
+      <p className="text-[11px] text-gray-400">地図上のボタンから本物件や隣の建物を配置すると、日影シミュレーションに反映されます。</p>
+
       {/* 凡例 */}
       <div className="flex gap-3 text-xs text-gray-500">
         <span className="flex items-center gap-1">

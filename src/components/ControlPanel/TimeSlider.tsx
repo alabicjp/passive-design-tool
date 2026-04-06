@@ -28,6 +28,7 @@ export default function TimeSlider() {
         <span>12:00</span>
         <span>18:00</span>
       </div>
+      <p className="text-[11px] text-gray-400">時刻を動かすと、地図上の影がリアルタイムに変化します。</p>
     </div>
   );
 }

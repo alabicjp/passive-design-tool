@@ -25,6 +25,7 @@ export default function AzimuthSlider() {
         <span>真南 0°</span>
         <span>西寄り +90°</span>
       </div>
+      <p className="text-[11px] text-gray-400">建物正面が向く方角です。真南が0°で、東寄り・西寄りに調整できます。</p>
     </div>
   );
 }

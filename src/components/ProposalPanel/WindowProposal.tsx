@@ -17,6 +17,7 @@ export default function WindowProposal() {
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm space-y-3">
       <h3 className="text-sm font-semibold text-gray-700">窓配置提案</h3>
+      <p className="text-[11px] text-gray-400">建物の各面について、窓の大きさと注意点を提案します。</p>
       <div className="space-y-2">
         {recommendations.map((rec) => (
           <div key={rec.face} className="rounded-lg bg-gray-50 p-3">

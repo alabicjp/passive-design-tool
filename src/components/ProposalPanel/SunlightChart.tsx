@@ -82,6 +82,7 @@ export default function SunlightChart() {
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm space-y-2">
       <h3 className="text-sm font-semibold text-gray-700">日照分析（各面の日照時間）</h3>
+      <p className="text-[11px] text-gray-400">建物の各面が1日に受ける日照時間を、夏至と冬至で比較したグラフです。</p>
       <Bar
         data={chartData}
         options={{

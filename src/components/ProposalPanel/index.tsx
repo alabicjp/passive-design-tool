@@ -22,6 +22,7 @@ export default function ProposalPanel() {
       </div>
 
       <h2 className="text-lg font-bold text-gray-800 print:hidden">パッシブデザイン提案</h2>
+      <p className="text-[11px] text-gray-400 print:hidden">左の設定に基づいて、パッシブデザインの提案を自動計算しています。</p>
 
       <SunlightChart />
       <EavesProposal />

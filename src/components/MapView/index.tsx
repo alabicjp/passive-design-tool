@@ -23,7 +23,7 @@ type AddMode = false | BlockType;
 export default function MapView() {
   const [addMode, setAddMode] = useState<AddMode>(false);
   const [mapStyle, setMapStyle] = useState<'osm' | 'photo'>('photo');
-  const { addBlock, setPosition } = useStore();
+  const { addBlock, setPosition, manualBlocks } = useStore();
 
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
@@ -86,6 +86,15 @@ export default function MapView() {
           </>
         )}
       </div>
+      {/* 初期案内テキスト */}
+      {!addMode && manualBlocks.length === 0 && (
+        <div className="absolute bottom-20 left-1/2 z-10 -translate-x-1/2 pointer-events-none">
+          <div className="rounded-xl bg-white/90 backdrop-blur-sm px-5 py-3 shadow-lg text-center">
+            <p className="text-sm font-medium text-gray-600">住所を検索したら、上のボタンで建物を配置してください</p>
+            <p className="text-[11px] text-gray-400 mt-1">「+ 本物件を配置」を押してから地図をクリックすると建物が配置されます</p>
+          </div>
+        </div>
+      )}
       {/* 地図切り替えボタン */}
       <div className="absolute top-3 right-3 z-10 flex rounded-lg shadow-md overflow-hidden">
         <button

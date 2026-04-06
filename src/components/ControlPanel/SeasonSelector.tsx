@@ -27,6 +27,7 @@ export default function SeasonSelector() {
           </button>
         ))}
       </div>
+      <p className="text-[11px] text-gray-400">太陽の高さは季節で大きく変わります。夏至は高く、冬至は低くなります。</p>
     </div>
   );
 }

@@ -37,6 +37,7 @@ export default function VentilationProposal() {
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm space-y-3">
       <h3 className="text-sm font-semibold text-gray-700">通風提案</h3>
+      <p className="text-[11px] text-gray-400">地域の卓越風向に基づき、効果的な通風ルートを提案します。</p>
 
       {/* 風向表示 */}
       <div className="flex items-center gap-4">
